@@ -32,6 +32,12 @@ const messages = defineMessages({
     id: 'ActionPanel.addUserNotification',
     defaultMessage: 'Member was successfully created',
   },
+  addUserTitle: {
+    id: 'ActionPanel.addUserTitle',
+    defaultMessage: 'Add user',
+  },
+  submitText: { id: 'ActionPanel.submitText', defaultMessage: 'Add' },
+  cancelText: { id: 'ActionPanel.cancelText', defaultMessage: 'Cancel' },
 });
 
 @connect(
@@ -47,16 +53,32 @@ const messages = defineMessages({
 export class ActionPanel extends Component {
   static propTypes = {
     intl: intlShape.isRequired,
-    showNotification: PropTypes.func,
+    showNotification: PropTypes.func.isRequired,
+    showModal: PropTypes.func,
   };
   static defaultProps = {
-    showNotification: () => {},
+    showModal: () => {},
   };
+
   onAddUser = () => {
-    const { intl } = this.props;
-    this.props.showNotification({
-      type: NOTIFICATION_TYPES.SUCCESS,
-      message: intl.formatMessage(messages.addUserNotification),
+    const { intl, showModal } = this.props;
+    const onSubmit = () => {
+      this.props.showNotification({
+        type: NOTIFICATION_TYPES.SUCCESS,
+        message: intl.formatMessage(messages.addUserNotification),
+      });
+    };
+
+    showModal({
+      id: 'allUsersAddUserModal',
+      data: {
+        message: '',
+        title: intl.formatMessage(messages.addUserTitle),
+        submitText: intl.formatMessage(messages.submitText),
+        cancelText: intl.formatMessage(messages.cancelText),
+        // user: value.userId,
+        onSubmit,
+      },
     });
   };
   renderHeaderButtons = () => {
