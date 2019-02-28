@@ -130,6 +130,10 @@ const messages = defineMessages({
     id: 'EmailServerTab.portFieldHint',
     defaultMessage: "Only numbers from '1' to '65535' are possible.",
   },
+  userNameHint: {
+    id: 'AddUserModal.loginHint',
+    defaultMessage: 'This field is required',
+  },
 });
 
 @injectIntl
