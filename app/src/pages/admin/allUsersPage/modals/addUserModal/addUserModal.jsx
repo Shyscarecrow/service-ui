@@ -58,6 +58,18 @@ const messages = defineMessages({
   },
 });
 
+const randomPassword = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+  const passSize = 8;
+  let pass = '';
+  let i;
+  let n;
+  for (i = 0, n = chars.length; i < passSize; i += 1) {
+    pass += chars.charAt(Math.floor(Math.random() * n));
+  }
+  return pass;
+};
+
 @withModal('allUsersAddUserModal')
 @injectIntl
 @connect((state) => ({
@@ -91,7 +103,6 @@ export class AddUserModal extends Component {
   render() {
     const { onSubmit, title, submitText, cancelText } = this.props.data;
     const { intl, handleSubmit } = this.props;
-
     return (
       <ModalLayout
         title={title}
@@ -184,8 +195,12 @@ export class AddUserModal extends Component {
                   <Input maxLength={128} />
                 </FieldErrorHint>
               </FieldProvider>
-
-              <span className={cx('generate-password-link')}>Generate password</span>
+              <span
+                className={cx('generate-password-link')}
+                onClick={console.log(randomPassword())}
+              >
+                Generate password
+              </span>
             </ModalField>
           </div>
         </form>
