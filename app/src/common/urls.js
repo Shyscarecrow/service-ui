@@ -188,4 +188,5 @@ export const URLS = {
   statisticsServerSettings: () => `${urlBase}settings/analytics`,
   events: (projectId) => `${urlBase}${projectId}/activity`,
   allUsers: () => `${urlBase}user/all`,
+  allProjects: () => `${urlBase}project/all`,
 };

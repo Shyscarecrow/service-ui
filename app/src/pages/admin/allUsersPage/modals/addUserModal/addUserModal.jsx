@@ -1,18 +1,25 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import track from 'react-tracking';
 import PropTypes from 'prop-types';
+import classNames from 'classnames/bind';
 import { injectIntl, intlShape, defineMessages } from 'react-intl';
 import { reduxForm } from 'redux-form';
 import { FieldErrorHint } from 'components/fields/fieldErrorHint';
 import { FieldProvider } from 'components/fields/fieldProvider';
 import { Input } from 'components/inputs/input';
 import { validate } from 'common/utils';
+import { URLS } from 'common/urls';
 import { ROLES_MAP, MEMBER } from 'common/constants/projectRoles';
 import { ACCOUNT_ROLES_MAP, USER } from 'common/constants/accountRoles';
 import { ModalLayout, withModal, ModalField } from 'components/main/modal';
 import { SectionHeader } from 'components/main/sectionHeader';
 import { InputDropdown } from 'components/inputs/inputDropdown';
 import { InputTagsSearch } from 'components/inputs/inputTagsSearch';
+import { activeProjectSelector } from 'controllers/user';
+import styles from './addUserModal.scss';
+
+const cx = classNames.bind(styles);
 
 const LABEL_WIDTH = 105;
 
@@ -53,10 +60,16 @@ const messages = defineMessages({
 
 @withModal('allUsersAddUserModal')
 @injectIntl
+@connect((state) => ({
+  projectSearchUrl: URLS.launchOwnersSearch(activeProjectSelector(state)),
+}))
 @reduxForm({
   form: 'addUserForm',
-  validate: ({ login }) => ({
-    login: (!login || !validate.dashboardName(login)) && 'loginHint',
+  validate: ({ login, fullName, email, password }) => ({
+    login: (!login || !validate.login(login)) && 'loginHint',
+    fullName: (!fullName || !validate.name(fullName)) && 'nameHint',
+    email: (!email || !validate.email(email)) && 'emailHint',
+    password: (!password || !validate.password(password)) && 'passwordHint',
   }),
 })
 @track()
@@ -67,15 +80,17 @@ export class AddUserModal extends Component {
       getTrackingData: PropTypes.func,
     }).isRequired,
     intl: intlShape.isRequired,
+    handleSubmit: PropTypes.func,
   };
 
   static defaultProps = {
     data: {},
+    handleSubmit: () => {},
   };
 
   render() {
     const { onSubmit, title, submitText, cancelText } = this.props.data;
-    const { intl } = this.props;
+    const { intl, handleSubmit } = this.props;
 
     return (
       <ModalLayout
@@ -84,8 +99,7 @@ export class AddUserModal extends Component {
           text: submitText,
           danger: false,
           onClick: (closeModal) => {
-            closeModal();
-            onSubmit();
+            handleSubmit(onSubmit(closeModal))();
           },
         }}
         cancelButton={{
@@ -143,9 +157,11 @@ export class AddUserModal extends Component {
             >
               <FieldProvider name="selectAProject" type="text">
                 <FieldErrorHint>
-                  <InputDropdown>
-                    <InputTagsSearch options={[1, 2]} />
-                  </InputDropdown>
+                  <InputTagsSearch
+                    placeholder={'Enter project name'}
+                    focusPlaceholder={'Searching...'}
+                    uri={URLS.allProjects()}
+                  />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>
@@ -168,6 +184,8 @@ export class AddUserModal extends Component {
                   <Input maxLength={128} />
                 </FieldErrorHint>
               </FieldProvider>
+
+              <span className={cx('generate-password-link')}>Generate password</span>
             </ModalField>
           </div>
         </form>

@@ -76,7 +76,6 @@ export class ActionPanel extends Component {
         title: intl.formatMessage(messages.addUserTitle),
         submitText: intl.formatMessage(messages.submitText),
         cancelText: intl.formatMessage(messages.cancelText),
-        // user: value.userId,
         onSubmit,
       },
     });
