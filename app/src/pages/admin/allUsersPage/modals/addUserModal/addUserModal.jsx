@@ -11,7 +11,7 @@ import { Input } from 'components/inputs/input';
 import { validate } from 'common/utils';
 import { URLS } from 'common/urls';
 import { ROLES_MAP, MEMBER } from 'common/constants/projectRoles';
-import { ACCOUNT_ROLES_MAP, USER } from 'common/constants/accountRoles';
+import { ACCOUNT_ROLES_MAP, USER, ADMINISTRATOR } from 'common/constants/accountRoles';
 import { ModalLayout, withModal, ModalField } from 'components/main/modal';
 import { SectionHeader } from 'components/main/sectionHeader';
 import { InputDropdown } from 'components/inputs/inputDropdown';
@@ -77,10 +77,12 @@ const randomPassword = () => {
 }))
 @reduxForm({
   form: 'addUserForm',
-  validate: ({ login, fullName, email, password }) => ({
+  initialValues: { accountRole: USER, projectRole: MEMBER },
+  validate: ({ login, fullName, email, password, selectAProject }) => ({
     login: (!login || !validate.login(login)) && 'loginHint',
     fullName: (!fullName || !validate.name(fullName)) && 'nameHint',
     email: (!email || !validate.email(email)) && 'emailHint',
+    selectAProject: !selectAProject && 'requiredFieldHint',
     password: (!password || !validate.password(password)) && 'passwordHint',
   }),
 })
@@ -93,11 +95,23 @@ export class AddUserModal extends Component {
     }).isRequired,
     intl: intlShape.isRequired,
     handleSubmit: PropTypes.func,
+    change: PropTypes.func,
   };
 
   static defaultProps = {
     data: {},
     handleSubmit: () => {},
+    change: () => {},
+  };
+
+  onGeneratePassword = () => {
+    this.props.change('password', randomPassword());
+  };
+
+  onChooseAdminRole = (value) => {
+    if (value === ADMINISTRATOR) {
+      this.props.change('projectRole', 'PROJECT MANAGER');
+    }
   };
 
   render() {
@@ -110,7 +124,10 @@ export class AddUserModal extends Component {
           text: submitText,
           danger: false,
           onClick: (closeModal) => {
-            handleSubmit(onSubmit(closeModal))();
+            handleSubmit((values) => {
+              onSubmit(values);
+              closeModal();
+            })();
           },
         }}
         cancelButton={{
@@ -156,9 +173,9 @@ export class AddUserModal extends Component {
               label={intl.formatMessage(messages.userAccountRoleLabel)}
               labelWidth={LABEL_WIDTH}
             >
-              <FieldProvider name="accounRole" type="text">
+              <FieldProvider name="accountRole" type="text">
                 <FieldErrorHint>
-                  <InputDropdown options={ACCOUNT_ROLES_MAP} value={USER} />
+                  <InputDropdown options={ACCOUNT_ROLES_MAP} onChange={this.onChooseAdminRole} />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>
@@ -172,6 +189,7 @@ export class AddUserModal extends Component {
                     placeholder={'Enter project name'}
                     focusPlaceholder={'Searching...'}
                     uri={URLS.allProjects()}
+                    async
                   />
                 </FieldErrorHint>
               </FieldProvider>
@@ -182,7 +200,7 @@ export class AddUserModal extends Component {
             >
               <FieldProvider name="projectRole" type="text">
                 <FieldErrorHint>
-                  <InputDropdown options={ROLES_MAP} value={MEMBER} />
+                  <InputDropdown options={ROLES_MAP} />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>
@@ -195,10 +213,7 @@ export class AddUserModal extends Component {
                   <Input maxLength={128} />
                 </FieldErrorHint>
               </FieldProvider>
-              <span
-                className={cx('generate-password-link')}
-                onClick={console.log(randomPassword())}
-              >
+              <span className={cx('generate-password-link')} onClick={this.onGeneratePassword}>
                 Generate password
               </span>
             </ModalField>
