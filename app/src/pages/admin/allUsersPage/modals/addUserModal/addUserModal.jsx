@@ -109,7 +109,8 @@ export class AddUserModal extends Component {
   };
 
   onChooseAdminRole = (value) => {
-    if (value === ADMINISTRATOR) {
+    console.log(value);
+    if (value !== ADMINISTRATOR) {
       this.props.change('projectRole', 'PROJECT MANAGER');
     }
   };
@@ -175,7 +176,10 @@ export class AddUserModal extends Component {
             >
               <FieldProvider name="accountRole" type="text">
                 <FieldErrorHint>
-                  <InputDropdown options={ACCOUNT_ROLES_MAP} onChange={this.onChooseAdminRole} />
+                  <InputDropdown
+                    options={ACCOUNT_ROLES_MAP}
+                    onChange={(value) => this.onChooseAdminRole(value)}
+                  />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>
