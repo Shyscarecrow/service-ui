@@ -4,7 +4,7 @@ import track from 'react-tracking';
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
 import { injectIntl, intlShape, defineMessages } from 'react-intl';
-import { reduxForm } from 'redux-form';
+import { reduxForm, formValueSelector } from 'redux-form';
 import { FieldErrorHint } from 'components/fields/fieldErrorHint';
 import { FieldProvider } from 'components/fields/fieldProvider';
 import { Input } from 'components/inputs/input';
@@ -103,16 +103,18 @@ export class AddUserModal extends Component {
     handleSubmit: () => {},
     change: () => {},
   };
+  state = {
+    disabled: false,
+  };
 
   onGeneratePassword = () => {
     this.props.change('password', randomPassword());
   };
+  onChooseAdmin = () => {
+    const selector = formValueSelector('addUserForm');
 
-  onChooseAdminRole = (value) => {
-    console.log(value);
-    if (value !== ADMINISTRATOR) {
-      this.props.change('projectRole', 'PROJECT MANAGER');
-    }
+    const accountRoleValue = selector('accountRole');
+    return accountRoleValue === ADMINISTRATOR;
   };
 
   render() {
@@ -176,10 +178,7 @@ export class AddUserModal extends Component {
             >
               <FieldProvider name="accountRole" type="text">
                 <FieldErrorHint>
-                  <InputDropdown
-                    options={ACCOUNT_ROLES_MAP}
-                    onChange={(value) => this.onChooseAdminRole(value)}
-                  />
+                  <InputDropdown options={ACCOUNT_ROLES_MAP} />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>
@@ -204,7 +203,10 @@ export class AddUserModal extends Component {
             >
               <FieldProvider name="projectRole" type="text">
                 <FieldErrorHint>
-                  <InputDropdown options={ROLES_MAP} />
+                  <InputDropdown
+                    options={ROLES_MAP}
+                    // disabled={this.onChooseAdminRole()}
+                  />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>
