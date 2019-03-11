@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+// import { connect } from 'react-redux';
 import track from 'react-tracking';
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
@@ -16,7 +16,7 @@ import { ModalLayout, withModal, ModalField } from 'components/main/modal';
 import { SectionHeader } from 'components/main/sectionHeader';
 import { InputDropdown } from 'components/inputs/inputDropdown';
 import { InputTagsSearch } from 'components/inputs/inputTagsSearch';
-import { activeProjectSelector } from 'controllers/user';
+// import { activeProjectSelector } from 'controllers/user';
 import styles from './addUserModal.scss';
 
 const cx = classNames.bind(styles);
@@ -72,9 +72,6 @@ const randomPassword = () => {
 
 @withModal('allUsersAddUserModal')
 @injectIntl
-@connect((state) => ({
-  projectSearchUrl: URLS.launchOwnersSearch(activeProjectSelector(state)),
-}))
 @reduxForm({
   form: 'addUserForm',
   initialValues: { accountRole: USER, projectRole: MEMBER },
@@ -191,8 +188,9 @@ export class AddUserModal extends Component {
                   <InputTagsSearch
                     placeholder={'Enter project name'}
                     focusPlaceholder={'Searching...'}
-                    uri={URLS.allProjects()}
+                    uri={URLS.allProjectsSearch()}
                     async
+                    dynamicSearchPromptText
                   />
                 </FieldErrorHint>
               </FieldProvider>
