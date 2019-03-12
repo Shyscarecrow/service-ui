@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-// import { connect } from 'react-redux';
+import { connect } from 'react-redux';
 import track from 'react-tracking';
 import PropTypes from 'prop-types';
 import classNames from 'classnames/bind';
@@ -10,13 +10,12 @@ import { FieldProvider } from 'components/fields/fieldProvider';
 import { Input } from 'components/inputs/input';
 import { validate } from 'common/utils';
 import { URLS } from 'common/urls';
-import { ROLES_MAP, MEMBER } from 'common/constants/projectRoles';
+import { ROLES_MAP, MEMBER, PROJECT_MANAGER } from 'common/constants/projectRoles';
 import { ACCOUNT_ROLES_MAP, USER, ADMINISTRATOR } from 'common/constants/accountRoles';
 import { ModalLayout, withModal, ModalField } from 'components/main/modal';
 import { SectionHeader } from 'components/main/sectionHeader';
 import { InputDropdown } from 'components/inputs/inputDropdown';
 import { InputTagsSearch } from 'components/inputs/inputTagsSearch';
-// import { activeProjectSelector } from 'controllers/user';
 import styles from './addUserModal.scss';
 
 const cx = classNames.bind(styles);
@@ -75,14 +74,16 @@ const randomPassword = () => {
 @reduxForm({
   form: 'addUserForm',
   initialValues: { accountRole: USER, projectRole: MEMBER },
-  validate: ({ login, fullName, email, password, selectAProject }) => ({
+  validate: ({ login, fullName, email, password }) => ({
     login: (!login || !validate.login(login)) && 'loginHint',
     fullName: (!fullName || !validate.name(fullName)) && 'nameHint',
     email: (!email || !validate.email(email)) && 'emailHint',
-    selectAProject: !selectAProject && 'requiredFieldHint',
     password: (!password || !validate.password(password)) && 'passwordHint',
   }),
 })
+@connect((state) => ({
+  userRole: formValueSelector('addUserForm')(state, 'accountRole'),
+}))
 @track()
 export class AddUserModal extends Component {
   static propTypes = {
@@ -93,30 +94,30 @@ export class AddUserModal extends Component {
     intl: intlShape.isRequired,
     handleSubmit: PropTypes.func,
     change: PropTypes.func,
+    userRole: PropTypes.string,
   };
 
   static defaultProps = {
     data: {},
     handleSubmit: () => {},
     change: () => {},
+    userRole: '',
   };
-  state = {
-    disabled: false,
-  };
-
   onGeneratePassword = () => {
     this.props.change('password', randomPassword());
   };
-  onChooseAdmin = () => {
-    const selector = formValueSelector('addUserForm');
-
-    const accountRoleValue = selector('accountRole');
-    return accountRoleValue === ADMINISTRATOR;
+  onChangeAccountRole = (event, value) => {
+    const role = value === ADMINISTRATOR ? PROJECT_MANAGER : MEMBER;
+    this.props.change('projectRole', role);
   };
+  formatProjectNameOptions = (values) =>
+    values.content.map((value) => ({ value: value.projectName, label: value.projectName }));
+  formatValue = (value) => (value ? { value, label: value } : null);
+  parseValue = (value) => (value ? value.value : undefined);
 
   render() {
     const { onSubmit, title, submitText, cancelText } = this.props.data;
-    const { intl, handleSubmit } = this.props;
+    const { intl, handleSubmit, userRole } = this.props;
     return (
       <ModalLayout
         title={title}
@@ -173,7 +174,7 @@ export class AddUserModal extends Component {
               label={intl.formatMessage(messages.userAccountRoleLabel)}
               labelWidth={LABEL_WIDTH}
             >
-              <FieldProvider name="accountRole" type="text">
+              <FieldProvider name="accountRole" type="text" onChange={this.onChangeAccountRole}>
                 <FieldErrorHint>
                   <InputDropdown options={ACCOUNT_ROLES_MAP} />
                 </FieldErrorHint>
@@ -183,14 +184,20 @@ export class AddUserModal extends Component {
               label={intl.formatMessage(messages.userSelectAProjectLabel)}
               labelWidth={LABEL_WIDTH}
             >
-              <FieldProvider name="selectAProject" type="text">
+              <FieldProvider
+                name="defaultProject"
+                type="text"
+                format={this.formatValue}
+                parse={this.parseValue}
+              >
                 <FieldErrorHint>
                   <InputTagsSearch
                     placeholder={'Enter project name'}
                     focusPlaceholder={'Searching...'}
                     uri={URLS.allProjectsSearch()}
+                    makeOptions={this.formatProjectNameOptions}
                     async
-                    dynamicSearchPromptText
+                    removeSelected
                   />
                 </FieldErrorHint>
               </FieldProvider>
@@ -201,10 +208,7 @@ export class AddUserModal extends Component {
             >
               <FieldProvider name="projectRole" type="text">
                 <FieldErrorHint>
-                  <InputDropdown
-                    options={ROLES_MAP}
-                    // disabled={this.onChooseAdminRole()}
-                  />
+                  <InputDropdown options={ROLES_MAP} disabled={userRole === ADMINISTRATOR} />
                 </FieldErrorHint>
               </FieldProvider>
             </ModalField>

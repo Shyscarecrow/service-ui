@@ -70,7 +70,7 @@ export class ActionPanel extends Component {
         data: {
           accountRole: values.accountRole,
           accountType: INTERNAL,
-          defaultProject: values.selectProject,
+          defaultProject: values.defaultProject,
           email: values.email,
           fullName: values.fullName,
           login: values.login,
